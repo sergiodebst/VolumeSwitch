@@ -63,6 +63,7 @@
     <Compile Include="Model\Config.cs" />
     <Compile Include="Extensions\ExtensionsOfDependencyObject.cs" />
     <Compile Include="Model\KeyboardShortcutAction.cs" />
+    <Compile Include="Static\WindowsManager.cs" />
     <Compile Include="View\Controls\IHandleKeyboardHookControl.cs" />
     <Compile Include="Static\KeyboardManager.cs" />
     <Compile Include="NotifyIcon\NativeMethods.cs" />

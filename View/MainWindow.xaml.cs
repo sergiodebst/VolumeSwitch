@@ -31,7 +31,6 @@ namespace VolumeSwitch
             base.OnSourceInitialized(e);
             App.RegisterWindow(this);
             this.DataContext = new MainWindowViewModel(this);
-            KeyboardManager.DisableSystemKeys(this.VisualTreeChildren<IHandleKeyboardHookControl>().ToList());
         }
 
 
@@ -45,6 +44,7 @@ namespace VolumeSwitch
         {
             base.OnDeactivated(e);
             KeyboardManager.EnableSystemKeys();
+            WindowsManager.StartMonitoringActiveAppChangesIfNeeded();
         }
 
         protected override void OnClosing(CancelEventArgs e)

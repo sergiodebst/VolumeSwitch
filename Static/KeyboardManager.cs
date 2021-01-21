@@ -40,12 +40,15 @@ namespace VolumeSwitch
 
         public static void DisableSystemKeys(IEnumerable<IHandleKeyboardHookControl> controls)
         {
-            // Note: This does not work in the VS host environment.  To run in debug mode:
-            // Project -> Properties -> Debug -> Uncheck "Enable the Visual Studio hosting process"
-            IntPtr hInstance = Marshal.GetHINSTANCE(App.Current.GetType().Module);
-            HandlerControls = controls;
-            _handler = new LowLevelKeyboardProc(KeyboardHookHandler);
-            CurrentHook = SetWindowsHookEx(WH_KEYBOARD_LL, _handler, hInstance, 0);
+            if (CurrentHook == IntPtr.Zero)
+            {
+                // Note: This does not work in the VS host environment.  To run in debug mode:
+                // Project -> Properties -> Debug -> Uncheck "Enable the Visual Studio hosting process"
+                IntPtr hInstance = Marshal.GetHINSTANCE(App.Current.GetType().Module);
+                HandlerControls = controls;
+                _handler = new LowLevelKeyboardProc(KeyboardHookHandler);
+                CurrentHook = SetWindowsHookEx(WH_KEYBOARD_LL, _handler, hInstance, 0);
+            }
         }
 
         public static void EnableSystemKeys()
