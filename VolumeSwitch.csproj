@@ -58,6 +58,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Extensions\ExtensionsOfIEnumerable.cs" />
+    <Compile Include="Extensions\ExtensionsOfObject.cs" />
     <Compile Include="Model\Config.cs" />
     <Compile Include="Extensions\ExtensionsOfDependencyObject.cs" />
     <Compile Include="Model\KeyboardShortcutAction.cs" />

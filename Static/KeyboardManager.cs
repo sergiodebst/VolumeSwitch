@@ -65,14 +65,13 @@ namespace VolumeSwitch
             {
                 var wpfKey = KeyInterop.KeyFromVirtualKey(lParam.vkCode);
                 var wparamTyped = wParam.ToInt32();
-                
                 if (Enum.IsDefined(typeof(KeyboardState), wparamTyped))
                 {
                     var isKeyDown = false;
                     if (wparamTyped == (int)KeyboardState.WM_KEYDOWN || wparamTyped == (int) KeyboardState.WM_SYSKEYDOWN)
                     {
                         isKeyDown = true;
-                        CurrentlyPressedKeys.Add(wpfKey);
+                        if(!CurrentlyPressedKeys.Contains(wpfKey)) CurrentlyPressedKeys.Add(wpfKey);
                     }
                     else if(CurrentlyPressedKeys.Contains(wpfKey)) 
                     {
@@ -83,17 +82,17 @@ namespace VolumeSwitch
                         var aaa = wparamTyped;
                     }
 
+                    var key = new KeyboardShortcut(wpfKey)
+                    {
+                        CtrlModifier = CurrentlyPressedKeys.Contains(Key.LeftCtrl) || CurrentlyPressedKeys.Contains(Key.LeftCtrl),
+                        ShiftModifier = CurrentlyPressedKeys.Contains(Key.LeftShift) || CurrentlyPressedKeys.Contains(Key.RightShift),
+                        AltModifier = CurrentlyPressedKeys.Contains(Key.LeftAlt) || CurrentlyPressedKeys.Contains(Key.RightAlt),
+                        WinModifier = CurrentlyPressedKeys.Contains(Key.LWin) || CurrentlyPressedKeys.Contains(Key.RWin)
+                    };
+                    var keyEvent = new KeyEvent(key);
 
                     if (HandlerControls != null)
-                    {
-                        var key = new KeyboardShortcut(wpfKey)
-                        {
-                            CtrlModifier = CurrentlyPressedKeys.Contains(Key.LeftCtrl) || CurrentlyPressedKeys.Contains(Key.LeftCtrl),
-                            ShiftModifier = CurrentlyPressedKeys.Contains(Key.LeftShift) || CurrentlyPressedKeys.Contains(Key.RightShift),
-                            AltModifier = CurrentlyPressedKeys.Contains(Key.LeftAlt) || CurrentlyPressedKeys.Contains(Key.RightAlt),
-                            WinModifier = CurrentlyPressedKeys.Contains(Key.LWin) || CurrentlyPressedKeys.Contains(Key.RWin)
-                        };
-                        var keyEvent = new KeyEvent(key);
+                    {                        
                         foreach (var control in HandlerControls)
                         {
                             if (control.CanHandleHook)
@@ -101,15 +100,19 @@ namespace VolumeSwitch
                                 control.HandleHook(keyEvent);
                                 if (keyEvent.Handled) break;
                             }
-                        }
-                        if (!keyEvent.Handled && !isKeyDown)
-                        {
-                            HotKeyManager.CallActionIfRegistered(key);
-                        }
+                        }                        
                     }
-                    return new IntPtr(1);
-                }
 
+                    if (keyEvent.Handled)
+                    {
+                        return new IntPtr(1);
+                    }
+                    else if (!keyEvent.Handled && isKeyDown)
+                    {
+                        KeyboardShortcutAction action = HotKeyManager.CallActionIfRegistered(key);
+                        if (action != null) return new IntPtr(1);
+                    }
+                }
             }
             
             return CallNextHookEx(CurrentHook, nCode, wParam, ref lParam);
