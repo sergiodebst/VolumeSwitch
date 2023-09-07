@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Windows.Input;
+using debstDevelopments.Common;
 
 namespace VolumeSwitch
 {
@@ -78,7 +79,7 @@ namespace VolumeSwitch
                 value = value == null ? "null" : value.ToString();
                 builder.AppendLine($"{prop.Name}={value}");
             }
-            File.WriteAllText(ConfigFile.FullName, builder.ToString());
+            ConfigFile.WriteAllText(builder.ToString());
             this.Apply();
         }
     }

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using debstDevelopments.Common;
+using debstDevelopments.Common.Logging;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -36,7 +38,7 @@ namespace VolumeSwitch
         }
 
         delegate void WinEventHookProc(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime);
-        private static WinEventHookProc _handler;
+        private static WinEventHookProc _handler; //Static so the GC does not clean it and the hook stop working
         private static IntPtr CurrentHook = IntPtr.Zero;
 
         [DllImport("user32.dll")]
@@ -62,20 +64,28 @@ namespace VolumeSwitch
 
         public static void StartMonitoringActiveAppChangesIfNeeded()
         {
-            if (ShouldMonitorActiveAppChange() && CurrentHook == IntPtr.Zero)
+            using (var log = Logger.LogAction("Starting active app monitor"))
             {
-                _handler = new WinEventHookProc(OnActiveWindowChanged);
-                CurrentHook = SetWinEventHook(EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, IntPtr.Zero, _handler, 0, 0, WINEVENT_OUTOFCONTEXT);
+                if (ShouldMonitorActiveAppChange() && CurrentHook == IntPtr.Zero)
+                {
+                    _handler = new WinEventHookProc(OnActiveWindowChanged);
+                    CurrentHook = SetWinEventHook(EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, IntPtr.Zero, _handler, 0, 0, WINEVENT_OUTOFCONTEXT);
+                    Logger.Log("Active app monitor started");
+                }
             }
         }
 
         public static void StopMonitoringActiveAppChanges()
         {
-            if (CurrentHook != IntPtr.Zero)
+            using (var log = Logger.LogAction("Stopping active app monitor"))
             {
-                UnhookWinEvent(CurrentHook);
-                CurrentHook = IntPtr.Zero;
-                KeyboardManager.EnableSystemKeys();
+                if (CurrentHook != IntPtr.Zero)
+                {
+                    UnhookWinEvent(CurrentHook);
+                    CurrentHook = IntPtr.Zero;
+                    KeyboardManager.StopKeyboardHook();
+                    Logger.Log("Active app monitor stopped");
+                }
             }
         }
 
@@ -90,6 +100,7 @@ namespace VolumeSwitch
                     var processesToHook = File.ReadAllLines(file.FullName);
                     if (processesToHook.Length > 0)
                     {
+                        Logger.Log("Hook file contain entries");
                         uint pid;
                         GetWindowThreadProcessId(hwnd, out pid);
                         Process p = Process.GetProcessById((int)pid);
@@ -106,7 +117,10 @@ namespace VolumeSwitch
                     KeyboardManager.EnableSystemKeys();
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Logger.Log(ex.FullStackTrace());
+            }
         }
 
         private static void OnMustHookFileChanged(object sender, FileSystemEventArgs e)

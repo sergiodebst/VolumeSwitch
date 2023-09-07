@@ -37,13 +37,13 @@ namespace VolumeSwitch
         protected override void OnActivated(EventArgs e)
         {
             base.OnActivated(e);
-            KeyboardManager.DisableSystemKeys(this.VisualTreeChildren<IHandleKeyboardHookControl>().ToList());
+            KeyboardManager.StartKeyboardHook(this.VisualTreeChildren<IHandleKeyboardHookControl>().ToList());
         }
 
         protected override void OnDeactivated(EventArgs e)
         {
             base.OnDeactivated(e);
-            KeyboardManager.EnableSystemKeys();
+            KeyboardManager.StopKeyboardHook();
             WindowsManager.StartMonitoringActiveAppChangesIfNeeded();
         }
 
