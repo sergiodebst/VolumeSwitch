@@ -15,6 +15,7 @@ namespace VolumeSwitch
     {
         static WindowsManager()
         {
+            MustHookFile = new FileInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, MustHookFileName));
             var file = MustHookFile;
             MustHookFileWatcher = new FileSystemWatcher(file.DirectoryName, file.Name);
             MustHookFileWatcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName;
@@ -29,13 +30,20 @@ namespace VolumeSwitch
         private const uint EVENT_SYSTEM_FOREGROUND = 3;
         private static readonly FileSystemWatcher MustHookFileWatcher;
         private static readonly string MustHookFileName = "hook";
-        private static FileInfo MustHookFile
+        private static FileInfo MustHookFile { get; }
+        private static string[] _MustHook;
+        private static string[] MustHook
         {
             get
             {
-                return new FileInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, MustHookFileName));
+                if (_MustHook == null && MustHookFile.ExistsNow())
+                {
+                    _MustHook = File.ReadAllLines(MustHookFile.FullName);
+                }
+                return _MustHook;
             }
         }
+
 
         delegate void WinEventHookProc(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime);
         private static WinEventHookProc _handler; //Static so the GC does not clean it and the hook stop working
@@ -58,8 +66,7 @@ namespace VolumeSwitch
 
         private static bool ShouldMonitorActiveAppChange()
         {
-            var file = MustHookFile;
-            return !IsCurrentAppActive() && file.Exists && !string.IsNullOrEmpty(File.ReadAllText(file.FullName));
+            return !IsCurrentAppActive() && !MustHook.IsNullOrEmpty();
         }
 
         public static void StartMonitoringActiveAppChangesIfNeeded()
@@ -93,28 +100,29 @@ namespace VolumeSwitch
         {
             try
             {
-                bool disabled = false;
-                var file = MustHookFile;
-                if (file.Exists)
+                using (var log = Logger.LogAction("Active app changed"))
                 {
-                    var processesToHook = File.ReadAllLines(file.FullName);
-                    if (processesToHook.Length > 0)
+                    bool disabled = false;
+                    var file = MustHookFile;
+                    if (MustHook?.Length > 0)
                     {
                         Logger.Log("Hook file contain entries");
                         uint pid;
                         GetWindowThreadProcessId(hwnd, out pid);
                         Process p = Process.GetProcessById((int)pid);
                         var activeProcessFile = new FileInfo(p.MainModule.FileName);
-                        if (processesToHook.Contains(activeProcessFile.Name))
+                        Logger.Log($"Current process is {pid}, {p.MainModule.FileName}, {activeProcessFile.Name} ");
+                        if (MustHook.Contains(activeProcessFile.Name))
                         {
-                            KeyboardManager.DisableSystemKeys(null);
+                            KeyboardManager.StartKeyboardHook(null);
                             disabled = true;
                         }
                     }
-                }
-                if (!disabled &&  !IsCurrentAppActive())
-                {
-                    KeyboardManager.EnableSystemKeys();
+                    if (!disabled && !IsCurrentAppActive())
+                    {
+                        KeyboardManager.StopKeyboardHook();
+                    }
+
                 }
             }
             catch (Exception ex)
@@ -125,6 +133,7 @@ namespace VolumeSwitch
 
         private static void OnMustHookFileChanged(object sender, FileSystemEventArgs e)
         {
+            _MustHook = null;
             App.Current.Dispatcher.BeginInvoke((Action)(() =>
             {
                 if (ShouldMonitorActiveAppChange())
