@@ -14,9 +14,6 @@ namespace VolumeSwitch
     /// </summary>
     public partial class App : Application
     {
-        public const int MUTE_HOTKEY_ID = 73673;
-        public const int VOL_UP_HOTKEY_ID = 73674;
-        public const int VOL_DOWN_HOTKEY_ID = 73675;
 
         private static WindowInteropHelper Interop;
         private static HwndSource HwndSource;

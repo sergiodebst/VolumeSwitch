@@ -23,6 +23,7 @@ namespace VolumeSwitch
         public KeyboardShortcut MuteShortcut { get; set; }
         public KeyboardShortcut VolDownShortcut { get; set; }
         public KeyboardShortcut VolUpShortcut { get; set; }
+        public bool MuteMicrophoneWithAudio { get; set; }
 
         public Config()
         {
@@ -44,10 +45,15 @@ namespace VolumeSwitch
                         }
                         else if (prop.PropertyType.IsEnum)
                         {
-                            value = Enum.Parse(prop.PropertyType, (string) value);
-                        }else if (prop.PropertyType == typeof(KeyboardShortcut))
+                            value = Enum.Parse(prop.PropertyType, (string)value);
+                        }
+                        else if (prop.PropertyType == typeof(KeyboardShortcut))
                         {
                             value = new KeyboardShortcut((string)value);
+                        }
+                        else if (prop.PropertyType == typeof(bool))
+                        {
+                            value = Convert.ToBoolean(value);
                         }
                         prop.SetValue(this, value);
                     }
@@ -58,9 +64,9 @@ namespace VolumeSwitch
 
         public void Apply()
         {
-            if (this.MuteShortcut != null) HotKeyManager.Register(new KeyboardShortcutAction(App.MUTE_HOTKEY_ID, this.MuteShortcut, VolumneManager.Mute));
-            if (this.VolUpShortcut != null) HotKeyManager.Register(new KeyboardShortcutAction(App.VOL_UP_HOTKEY_ID, this.VolUpShortcut, VolumneManager.VolUp));
-            if (this.VolDownShortcut != null) HotKeyManager.Register(new KeyboardShortcutAction(App.VOL_DOWN_HOTKEY_ID, this.VolDownShortcut, VolumneManager.VolDown));
+            if (this.MuteShortcut != null) HotKeyManager.Register(new KeyboardShortcutAction(HotKeyManager.MUTE_HOTKEY_ID, this.MuteShortcut, () => VolumneManager.Mute(this.MuteMicrophoneWithAudio)));
+            if (this.VolUpShortcut != null) HotKeyManager.Register(new KeyboardShortcutAction(HotKeyManager.VOL_UP_HOTKEY_ID, this.VolUpShortcut, VolumneManager.VolUp));
+            if (this.VolDownShortcut != null) HotKeyManager.Register(new KeyboardShortcutAction(HotKeyManager.VOL_DOWN_HOTKEY_ID, this.VolDownShortcut, VolumneManager.VolDown));
         }
 
         public void Save()

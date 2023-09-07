@@ -34,7 +34,7 @@ namespace VolumeSwitch
                 this.Config.VolUpShortcut = value;
                 this.RaisePropertyChanged();
             }
-       }
+        }
 
         public KeyboardShortcut VolDownShortcut
         {
@@ -49,6 +49,19 @@ namespace VolumeSwitch
             }
         }
 
+        public bool MuteMicrophoneWithAudio
+        {
+            get
+            {
+                return this.Config.MuteMicrophoneWithAudio;
+            }
+            set
+            {
+                this.Config.MuteMicrophoneWithAudio = value;
+                this.RaisePropertyChanged();
+            }
+        }
+
 
         private Config Config;
         private readonly MainWindow Window;
@@ -59,13 +72,13 @@ namespace VolumeSwitch
             this.SaveCommand = new RelayCommand(this.Save);
             this.OpenConfigurationCommand = new RelayCommand(this.OpenConfiguration);
             this.CloseAppCommand = new RelayCommand(this.CloseApp);
-            if(this.Config.MuteShortcut != null || this.Config.VolDownShortcut != null || this.Config.VolUpShortcut != null)
+            if (this.Config.MuteShortcut != null || this.Config.VolDownShortcut != null || this.Config.VolUpShortcut != null)
             {
                 w.WindowState = WindowState.Minimized;
             }
         }
 
-        
+
         public RelayCommand OpenConfigurationCommand { get; set; }
         public RelayCommand SaveCommand { get; set; }
         public RelayCommand CloseAppCommand { get; set; }

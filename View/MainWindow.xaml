@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Icon="pack://application:,,,/VolumeSwitch;component/Resources/sound_icon.png"
         Title="Volume switch"
-        WindowStyle="ToolWindow" WindowStartupLocation="CenterScreen" Width="280" Height="165">
+        WindowStyle="ToolWindow" WindowStartupLocation="CenterScreen" Width="280" Height="195">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="130" />
@@ -18,16 +18,18 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
         <Label Grid.Row="0" Content="Mute hotkey:" VerticalAlignment="Center" />
-        <Label Grid.Row="1" Content="Volume down hotkey:" VerticalAlignment="Center" />
-        <Label Grid.Row="2" Content="Volume up hotkey:" VerticalAlignment="Center" />
+        <Label Grid.Row="2" Content="Volume down hotkey:" VerticalAlignment="Center" />
+        <Label Grid.Row="3" Content="Volume up hotkey:" VerticalAlignment="Center" />
         
 
         <local:KeyboardShortcutBox Grid.Row="0" Grid.Column="1" KeyboardShortcut="{Binding MuteShortcut, Mode=TwoWay}" Margin="5" />
-        <local:KeyboardShortcutBox Grid.Row="1" Grid.Column="1" KeyboardShortcut="{Binding VolDownShortcut, Mode=TwoWay}" Margin="5" />
-        <local:KeyboardShortcutBox Grid.Row="2" Grid.Column="1" KeyboardShortcut="{Binding VolUpShortcut, Mode=TwoWay}" Margin="5" />
-        <Button Grid.Row="3" Grid.Column="1" Content="Save" Command="{Binding SaveCommand}" HorizontalAlignment="Right" Margin="5" Padding="5"/>
+        <CheckBox Grid.Row="1" Grid.ColumnSpan="2" Content="Mute microphone too" IsChecked="{Binding MuteMicrophoneWithAudio, Mode=TwoWay}" Margin="5,2,5,5" />
+        <local:KeyboardShortcutBox Grid.Row="2" Grid.Column="1" KeyboardShortcut="{Binding VolDownShortcut, Mode=TwoWay}" Margin="5" />
+        <local:KeyboardShortcutBox Grid.Row="3" Grid.Column="1" KeyboardShortcut="{Binding VolUpShortcut, Mode=TwoWay}" Margin="5" />
+        <Button Grid.Row="4" Grid.Column="1" Content="Save" Command="{Binding SaveCommand}" HorizontalAlignment="Right" Margin="5" Padding="5"/>
         <local:NotifyIcon Text="Volume switch" Icon="pack://application:,,,/VolumeSwitch;component/Resources/sound_icon.png" IconVisibility="Visible" Command="{Binding OpenConfigurationCommand}">
             <local:NotifyIcon.ContextMenu>
                 <ContextMenu>

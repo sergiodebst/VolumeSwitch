@@ -11,6 +11,10 @@ namespace VolumeSwitch
 {
     public static class HotKeyManager
     {
+
+        public const int MUTE_HOTKEY_ID = 1;
+        public const int VOL_UP_HOTKEY_ID = 2;
+        public const int VOL_DOWN_HOTKEY_ID = 3;
         // DLL libraries used to manage hotkeys
         [DllImport("user32.dll")]
         private static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vlc);

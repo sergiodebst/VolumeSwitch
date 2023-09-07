@@ -12,14 +12,21 @@ namespace VolumeSwitch
         private const int APPCOMMAND_VOLUME_MUTE = 0x80000;
         private const int APPCOMMAND_VOLUME_UP = 0xA0000;
         private const int APPCOMMAND_VOLUME_DOWN = 0x90000;
+        private const int APPCOMMAND_MICROPHONE_VOLUME_MUTE = 0x180000;
         private const int WM_APPCOMMAND = 0x319;
 
         [DllImport("user32.dll")]
         private static extern IntPtr SendMessageW(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
+        
+        public static void MicrophoneMute()
+        {
+            SendMessageW(App.Handler, WM_APPCOMMAND, App.Handler, (IntPtr)APPCOMMAND_MICROPHONE_VOLUME_MUTE);
+        }
 
-        public static void Mute()
+        public static void Mute(bool toggleMic)
         {
             SendMessageW(App.Handler, WM_APPCOMMAND, App.Handler, (IntPtr)APPCOMMAND_VOLUME_MUTE);
+            if (toggleMic) MicrophoneMute();
         }
 
         public static void VolDown()
