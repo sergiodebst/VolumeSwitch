@@ -39,7 +39,7 @@ using System.Windows;
                                               //(se utiliza si no se encuentra ningún recurso en la página,
                                               // aplicación o diccionarios de recursos específicos del tema)
 )]
-
+[assembly: Guid("5FB91A53-F77F-4085-B9B0-C919CB278F5A")]
 
 // La información de versión de un ensamblado consta de los cuatro valores siguientes:
 //
