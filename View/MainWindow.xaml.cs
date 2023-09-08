@@ -1,4 +1,5 @@
-﻿using System;
+﻿using debstDevelopments.HotKeyManager;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -37,7 +38,7 @@ namespace VolumeSwitch
         protected override void OnActivated(EventArgs e)
         {
             base.OnActivated(e);
-            KeyboardManager.StartKeyboardHook(this.VisualTreeChildren<IHandleKeyboardHookControl>().ToList());
+            KeyboardManager.StartKeyboardHook(typeof(App).Module, this.VisualTreeChildren<IKeyboardHookHandler>().ToList());
         }
 
         protected override void OnDeactivated(EventArgs e)

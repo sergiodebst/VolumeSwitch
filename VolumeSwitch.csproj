@@ -1,4 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net452</TargetFramework>
@@ -7,12 +8,34 @@
 		<AssemblyName>VolumeSwitch</AssemblyName>
 		<Platforms>AnyCPU;x86</Platforms>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<ApplicationIcon>Resources\sound_icon.ico</ApplicationIcon>
+		<StartupObject />
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	  <PlatformTarget>AnyCPU</PlatformTarget>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="debstDevelopments.Common.Logging" Version="1.0.1" />
+	  <None Remove="Resources\sound_icon.ico" />
+	  <None Remove="Resources\sound_icon.png" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Page Remove="View\App.xaml" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ApplicationDefinition Include="View\App.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </ApplicationDefinition>
+	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Include="debstDevelopments.Common.Logging" Version="1.0.1" />
+	  <PackageReference Include="debstDevelopments.HotKeyManager" Version="1.0.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<Reference Include="Microsoft.CSharp" />
 		<Reference Include="WindowsBase" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Resource Include="Resources\sound_icon.ico" />
+	  <Resource Include="Resources\sound_icon.png" />
 	</ItemGroup>
 </Project>
