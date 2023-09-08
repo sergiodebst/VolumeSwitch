@@ -29,6 +29,7 @@ namespace VolumeSwitch
         private const uint WINEVENT_OUTOFCONTEXT = 0;
         private const uint EVENT_SYSTEM_FOREGROUND = 3;
         private static readonly FileSystemWatcher MustHookFileWatcher;
+        private static Process ProcessHooked;
         private static readonly string MustHookFileName = "hook";
         private static FileInfo MustHookFile { get; }
         private static string[] _MustHook;
@@ -79,6 +80,24 @@ namespace VolumeSwitch
                     CurrentHook = SetWinEventHook(EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, IntPtr.Zero, _handler, 0, 0, WINEVENT_OUTOFCONTEXT);
                     Logger.Log("Active app monitor started");
                 }
+                if (ProcessHooked == null)
+                {
+                    foreach (var p in Process.GetProcesses())
+                    {
+                        var fileName = p.GetFileName();
+                        if (MustHook.Contains(fileName))
+                        {
+                            Logger.Log($"Must hook process found ({p.Id}, {p.MainModule.FileName}, {fileName})");
+                            StartKeyboardHookOnProcess(p);
+                            break;
+                        }
+                    }
+                }
+                else if (!MustHook.Contains(ProcessHooked.GetFileName()))
+                {
+                    Logger.Log($"Hooked process not found ({ProcessHooked.Id}, {ProcessHooked.MainModule.FileName}, {ProcessHooked.GetFileName()})");
+                    StopKeyboardHook();
+                }
             }
         }
 
@@ -90,45 +109,67 @@ namespace VolumeSwitch
                 {
                     UnhookWinEvent(CurrentHook);
                     CurrentHook = IntPtr.Zero;
-                    KeyboardManager.StopKeyboardHook();
+                    StopKeyboardHook();
                     Logger.Log("Active app monitor stopped");
                 }
             }
         }
 
+        //This method is to detect an application that hooks the system messages and cancels our hotkey to be executed
+        //When an app of this kind(this app are configured in the hook file) is detected we create a keyboardhook that gets the system messages before than
+        //the conflictive app and we keep the hook active until we detect that application has exited.
+        //Idealy we will activate the hook only when that application is active, but after some test I have noticed that when a conflictive app is starting the hook
+        //works as expected, but if you change to another app and remove the hook, when you return and activate the conflictive app, this method is executed
+        //once the application is already active and got eneught time to activate their hooks, so ours would be activate after theirs, but as they don't propagate
+        //the system messages we dont get notified, and our hotkeys are not executed...
+        //Because of that the first time a conflictive app is being activated, the hook is started and until the conflictive app is exited the hook will be there.
+        //Another solution would be the use of SetWindowsHookEx instead of SetWinEventHook and use WH_CBT to be able to detect HCBT_ACTIVATE which seems to be executed
+        //just before activate the window, but I would need to create a c++ DLL, because the only parameters allowed without a dll are WH_KEYBOARD_LL and WH_MOUSE_LL
+        //Since the conflictive apps normaly are games executed in fullscreenwindow and normally when you play, you are not much things in the pc to have 
+        //the hook activated while the game is running, does not seem the big deal
         private static void OnActiveWindowChanged(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime)
         {
             try
             {
                 using (var log = Logger.LogAction("Active app changed"))
                 {
-                    bool disabled = false;
-                    var file = MustHookFile;
-                    if (MustHook?.Length > 0)
+                    if (ProcessHooked == null)
                     {
-                        Logger.Log("Hook file contain entries");
-                        uint pid;
-                        GetWindowThreadProcessId(hwnd, out pid);
-                        Process p = Process.GetProcessById((int)pid);
-                        var activeProcessFile = new FileInfo(p.MainModule.FileName);
-                        Logger.Log($"Current process is {pid}, {p.MainModule.FileName}, {activeProcessFile.Name} ");
-                        if (MustHook.Contains(activeProcessFile.Name))
+                        if (MustHook?.Length > 0)
                         {
-                            KeyboardManager.StartKeyboardHook(null);
-                            disabled = true;
+                            Logger.Log("Hook file contain entries");
+                            uint pid;
+                            GetWindowThreadProcessId(hwnd, out pid);
+                            Process p = Process.GetProcessById((int)pid);
+                            var activeProcessFileName = p.GetFileName();
+                            Logger.Log($"Current process is {pid}, {p.MainModule.FileName}, {activeProcessFileName} ");
+                            if (MustHook.Contains(activeProcessFileName))
+                            {
+                                StartKeyboardHookOnProcess(p);
+                            }
                         }
-                    }
-                    if (!disabled && !IsCurrentAppActive())
+                    }else if (ProcessHooked.HasExited)
                     {
-                        KeyboardManager.StopKeyboardHook();
+                        StopKeyboardHook();
                     }
-
                 }
             }
             catch (Exception ex)
             {
                 Logger.Log(ex.FullStackTrace());
             }
+        }
+
+        private static void StartKeyboardHookOnProcess(Process p)
+        {
+            ProcessHooked = p;
+            KeyboardManager.StartKeyboardHook(null);
+        }
+
+        private static void StopKeyboardHook()
+        {
+            ProcessHooked = null;
+            KeyboardManager.StopKeyboardHook();
         }
 
         private static void OnMustHookFileChanged(object sender, FileSystemEventArgs e)
