@@ -66,9 +66,9 @@ namespace VolumeSwitch
 
         public void Apply()
         {
-            if (this.MuteShortcut != null) HotKeyManager.RegisterHotKey(App.Handler, new KeyboardShortcutAction(App.MUTE_HOTKEY_ID, this.MuteShortcut, () => VolumneManager.Mute(this.MuteMicrophoneWithAudio)));
-            if (this.VolUpShortcut != null) HotKeyManager.RegisterHotKey(App.Handler, new KeyboardShortcutAction(App.VOL_UP_HOTKEY_ID, this.VolUpShortcut, VolumneManager.VolUp));
-            if (this.VolDownShortcut != null) HotKeyManager.RegisterHotKey(App.Handler, new KeyboardShortcutAction(App.VOL_DOWN_HOTKEY_ID, this.VolDownShortcut, VolumneManager.VolDown));
+            if (this.MuteShortcut != null) HotKeyManager.RegisterHotKey(App.Handler, new KeyboardShortcutAction(App.MUTE_HOTKEY_ID, this.MuteShortcut, () => VolumneManager.ToggleVolumeMuteState(this.MuteMicrophoneWithAudio)));
+            if (this.VolUpShortcut != null) HotKeyManager.RegisterHotKey(App.Handler, new KeyboardShortcutAction(App.VOL_UP_HOTKEY_ID, this.VolUpShortcut, () => VolumneManager.VolUp(this.MuteMicrophoneWithAudio)));
+            if (this.VolDownShortcut != null) HotKeyManager.RegisterHotKey(App.Handler, new KeyboardShortcutAction(App.VOL_DOWN_HOTKEY_ID, this.VolDownShortcut, () => VolumneManager.VolDown(this.MuteMicrophoneWithAudio)));
         }
 
         public void Save()
