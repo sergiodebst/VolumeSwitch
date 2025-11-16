@@ -23,6 +23,7 @@ namespace VolumeSwitch
         }
 
         public KeyboardShortcut MuteShortcut { get; set; }
+        public KeyboardShortcut MuteMicrophoneShortcut { get; set; }
         public KeyboardShortcut VolDownShortcut { get; set; }
         public KeyboardShortcut VolUpShortcut { get; set; }
         public bool MuteMicrophoneWithAudio { get; set; }
@@ -66,9 +67,23 @@ namespace VolumeSwitch
 
         public void Apply()
         {
-            if (this.MuteShortcut != null) HotKeyManager.RegisterHotKey(App.Handler, new KeyboardShortcutAction(App.MUTE_HOTKEY_ID, this.MuteShortcut, () => VolumneManager.ToggleVolumeMuteState(this.MuteMicrophoneWithAudio)));
+            if (this.MuteShortcut != null) HotKeyManager.RegisterHotKey(App.Handler, new KeyboardShortcutAction(App.MUTE_HOTKEY_ID, this.MuteShortcut, this.ToggleVolumeMute));
             if (this.VolUpShortcut != null) HotKeyManager.RegisterHotKey(App.Handler, new KeyboardShortcutAction(App.VOL_UP_HOTKEY_ID, this.VolUpShortcut, () => VolumneManager.VolUp(this.MuteMicrophoneWithAudio)));
             if (this.VolDownShortcut != null) HotKeyManager.RegisterHotKey(App.Handler, new KeyboardShortcutAction(App.VOL_DOWN_HOTKEY_ID, this.VolDownShortcut, () => VolumneManager.VolDown(this.MuteMicrophoneWithAudio)));
+            if (this.MuteMicrophoneShortcut != null) HotKeyManager.RegisterHotKey(App.Handler, new KeyboardShortcutAction(App.MUTE_MICROPHONE_HOTKEY_ID, this.MuteMicrophoneShortcut, this.ToggleMicrophoneMute));
+        }
+
+        private void ToggleVolumeMute()
+        {
+            VolumneManager.ToggleVolumeMuteState(this.MuteMicrophoneWithAudio);
+            if (this.MuteMicrophoneWithAudio)
+                View.MuteIndicatorWindow.ShowIndicator();
+        }
+
+        private void ToggleMicrophoneMute()
+        {
+            VolumneManager.ToggleMicrophoneMuteState();
+            View.MuteIndicatorWindow.ShowIndicator();
         }
 
         public void Save()

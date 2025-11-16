@@ -50,6 +50,19 @@ namespace VolumeSwitch
             }
         }
 
+        public KeyboardShortcut MuteMicrophoneShortcut
+        {
+            get
+            {
+                return this.Config.MuteMicrophoneShortcut;
+            }
+            set
+            {
+                this.Config.MuteMicrophoneShortcut = value;
+                this.RaisePropertyChanged();
+            }
+        }
+
         public bool MuteMicrophoneWithAudio
         {
             get

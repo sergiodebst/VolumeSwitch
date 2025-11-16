@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 //https://stackoverflow.com/a/13139478
@@ -260,31 +261,55 @@ namespace VolumeSwitch
 
         private static bool GetVolumeIsMuted()
         {
-            return GetDeviceIsMuted(EDataFlow.eRender, ERole.eMultimedia);
+            using (var speakers = GetAudioDevice(EDataFlow.eRender, ERole.eMultimedia))
+                return speakers.IsMuted;
         }
-        private static bool GetMicrophoneIsMuted()
+        public static bool GetMicrophoneIsMuted()
         {
-            return GetDeviceIsMuted(EDataFlow.eCapture, ERole.eCommunications);
+            using (var microphone = GetMicrophone())
+                return microphone.IsMuted;
         }
 
-        private static bool GetDeviceIsMuted(EDataFlow flow, ERole role)
+        private static AudioDevice GetMicrophone()
         {
-            Type MMDeviceEnumeratorType = Type.GetTypeFromCLSID(new Guid("BCDE0395-E52F-467C-8E3D-C4579291692E"));
-            IMMDeviceEnumerator deviceEnumerator = (IMMDeviceEnumerator)(Activator.CreateInstance(MMDeviceEnumeratorType));
-            IMMDevice device; //speakers or microphone, depends on flow and role
-            deviceEnumerator.GetDefaultAudioEndpoint(flow, role, out device);
+            return GetAudioDevice(EDataFlow.eCapture, ERole.eCommunications);
+        }
 
-            Guid IID_IAudioSessionManager2 = typeof(IAudioEndpointVolume).GUID;
-            object o;
-            device.Activate(ref IID_IAudioSessionManager2, 0, IntPtr.Zero, out o);
-            IAudioEndpointVolume aev = (IAudioEndpointVolume)o;
+        private static AudioDevice GetAudioDevice(EDataFlow flow, ERole role)
+        {
+            return new AudioDevice(flow, role);
+        }
 
-            var mute = aev.GetMute();
+        private class AudioDevice : IDisposable
+        {
+            public bool IsMuted
+            {
+                get { return _aev.GetMute(); }
+                set { _aev.SetMute(value, Guid.Empty); }
+            }
 
-            Marshal.ReleaseComObject(aev);
-            Marshal.ReleaseComObject(device);
-            Marshal.ReleaseComObject(deviceEnumerator);
-            return mute;
+            private IMMDeviceEnumerator _deviceEnumerator;
+            private IMMDevice _device;
+            private IAudioEndpointVolume _aev;
+            public AudioDevice(EDataFlow flow, ERole role)
+            {
+                Type MMDeviceEnumeratorType = Type.GetTypeFromCLSID(new Guid("BCDE0395-E52F-467C-8E3D-C4579291692E"));
+                _deviceEnumerator = (IMMDeviceEnumerator)(Activator.CreateInstance(MMDeviceEnumeratorType));
+                _deviceEnumerator.GetDefaultAudioEndpoint(flow, role, out _device);
+
+                Guid IID_IAudioSessionManager2 = typeof(IAudioEndpointVolume).GUID;
+                object o;
+                _device.Activate(ref IID_IAudioSessionManager2, 0, IntPtr.Zero, out o);
+                _aev = (IAudioEndpointVolume)o;
+            }
+
+
+            public void Dispose()
+            {
+                Marshal.ReleaseComObject(_aev);
+                Marshal.ReleaseComObject(_device);
+                Marshal.ReleaseComObject(_deviceEnumerator);
+            }
         }
         #endregion
 
@@ -299,7 +324,8 @@ namespace VolumeSwitch
 
         public static void ToggleMicrophoneMuteState()
         {
-            SendMessageW(App.Handler, WM_APPCOMMAND, App.Handler, (IntPtr)APPCOMMAND_MICROPHONE_VOLUME_MUTE);
+            using (var microphone = GetMicrophone())
+                microphone.IsMuted = !microphone.IsMuted;
         }
 
         public static void ToggleVolumeMuteState(bool toggleMic)

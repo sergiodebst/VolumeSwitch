@@ -22,6 +22,7 @@ namespace VolumeSwitch
         public const int MUTE_HOTKEY_ID = 1;
         public const int VOL_UP_HOTKEY_ID = 2;
         public const int VOL_DOWN_HOTKEY_ID = 3;
+        public const int MUTE_MICROPHONE_HOTKEY_ID = 4;
 
         public static string GetActionName(int actionId)
         {
@@ -33,6 +34,8 @@ namespace VolumeSwitch
                     return nameof(VOL_UP_HOTKEY_ID);
                 case VOL_DOWN_HOTKEY_ID:
                     return nameof(VOL_DOWN_HOTKEY_ID);
+                case MUTE_MICROPHONE_HOTKEY_ID:
+                    return nameof(MUTE_MICROPHONE_HOTKEY_ID);
                 default:
                     return string.Empty;
             }
